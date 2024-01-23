@@ -13,11 +13,14 @@ public class PlayerMovement : MonoBehaviour
     bool isOnGround;
     bool isJumpPressed;
     float initialJumpVelocity;
-    [SerializeField] float maxJumpHeight = 1.0f;
-    float maxJumpTime = 0.5f;
-    bool isJumping;
-    float timeToApex;
+    [SerializeField] float maxJumpHeight;
 
+
+    float maxJumpTime = 0.5f;
+    float timeToApex;
+    [SerializeField] float jumpForce;
+    [SerializeField] float fallingForce;
+    bool isJumping;
 
     // Gravity variables
     float gravity = -0.98f;
@@ -33,9 +36,8 @@ public class PlayerMovement : MonoBehaviour
         controller = GetComponent<CharacterController>();
         isOnGround = controller.isGrounded;
         timeToApex = maxJumpTime / 2;
-        gravity = (-2 * maxJumpTime)/Mathf.Pow(timeToApex, 2);
+        gravity = (-2 * maxJumpTime) / Mathf.Pow(timeToApex, 2);
         initialJumpVelocity = (2 * maxJumpHeight) / timeToApex;
-        
 
         // Assuming you have a "Move" action mapped to your desired keys in the Input Actions asset
         //moveAction = new InputAction("Move", binding: "<Gamepad>/leftStick");
@@ -56,27 +58,24 @@ public class PlayerMovement : MonoBehaviour
         //        Debug.Log("Move action canceled");
         //    };
         //}
-
         //void OnEnable()
         //{
-        //    moveAction.Enable();
+        //    input.Enable();
         //}
-
         //void OnDisable()
         //{
-        //    moveAction.Disable();
+        //    input.Disable();
+        //}
     }
     private void Start()
     {
         Renderer renderer = GetComponent<Renderer>();
         renderer.material.color = Color.black;
         isOnGround = controller.isGrounded;
-
     }
-
     private void GravityControl()
     {
-        if (controller.isGrounded)
+        if (isOnGround)
         {
             playervelocity.y = groundedGravity;
         }
@@ -86,9 +85,7 @@ public class PlayerMovement : MonoBehaviour
             renderer.material.color = Color.red;
             playervelocity.y += gravity * Time.deltaTime;
         }
-
     }
-
     private void GroundChecker()
     {
         if (isOnGround)
@@ -104,17 +101,11 @@ public class PlayerMovement : MonoBehaviour
         return;
 
     }
-
     public void OnMove(InputAction.CallbackContext ctx)
     {
-
-
         movement = ctx.ReadValue<Vector2>();
         Debug.Log("Is Grounded");
-
-
     }
-
 
     // ------------ JUMP ------------ //
 
@@ -122,33 +113,30 @@ public class PlayerMovement : MonoBehaviour
     {
         isJumpPressed = ctx.ReadValueAsButton();
 
+
         if (isJumpPressed && playervelocity.y < maxJumpHeight)
         {
-            playervelocity.y += Mathf.Pow(2, 0.8f);
+            playervelocity.y += Mathf.Pow(2, jumpForce);
             Debug.Log("Jumping pressed");
         }
 
         else if (!isJumpPressed && !isOnGround)
         {
-            playervelocity.y -= 2.5f;
+            playervelocity.y -= fallingForce;
 
             if (playervelocity.y < 0)
             {
-                playervelocity.y = 0;
-
+                playervelocity.y = 1f;
             }
-
             Debug.Log("Falling");
         }
-
         Debug.Log("Jumping velocity" + playervelocity.y);
-
     }
     void Update()
     {
         Vector3 move = new(movement.x, playervelocity.y, movement.y);
         controller.Move(speed * Time.deltaTime * move);
         //GroundChecker();
-        GravityControl();   
+        GravityControl();
     }
 }

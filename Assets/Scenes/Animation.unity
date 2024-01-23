@@ -210,7 +210,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.11606401, y: -0, z: -0, w: 0.9932418}
-  m_LocalPosition: {x: -0.40125465, y: 0.89399993, z: -2.9634686}
+  m_LocalPosition: {x: 0.001, y: 0.89399993, z: -2.9634686}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -532,7 +532,7 @@ GameObject:
   - component: {fileID: 1810779795}
   - component: {fileID: 1810779794}
   m_Layer: 4
-  m_Name: Cube
+  m_Name: Nose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -617,12 +617,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1810779793}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 27.75454, y: 0.61, z: 22.05}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.005, y: 0.45699978, z: 0.274}
+  m_LocalScale: {x: 0.82674, y: 0.2125, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1835164461}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1835164457
 GameObject:
@@ -733,6 +733,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 330585546}
+  - {fileID: 1810779797}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1835164462
@@ -885,7 +886,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 10
-  maxJumpHeight: 3
+  maxJumpHeight: 20
+  jumpForce: 0.28
+  fallingForce: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -894,4 +897,3 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 896642672}
   - {fileID: 1835164461}
-  - {fileID: 1810779797}
