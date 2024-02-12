@@ -744,7 +744,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 516562980}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fb7194dc27b9df64c8beca7482ee8e0d, type: 3}
   m_Name: 
@@ -1006,7 +1006,7 @@ MonoBehaviour:
     m_ActionId: a0ec1b3f-ab16-42f7-93f3-8e1d1cf96f81
     m_ActionName: UI/TrackedDeviceOrientation
   m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
+  m_DefaultControlScheme: Keyboard&Mouse
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
@@ -1076,26 +1076,26 @@ MonoBehaviour:
   hasMovedOnce: 0
   NormalWalkingSpeed: 2
   WalkingOnStairsSpeed: 0.55
-  MoveSpeed: 0
-  SprintSpeed: 5.335
+  MoveSpeed: 2
+  SprintSpeed: 4
   RotationSmoothTime: 0.12
-  SpeedChangeRate: 10
+  SpeedChangeRate: 16
   JumpHeight: 1.2
   Gravity: -15
-  JumpTimeout: 0.5
+  JumpTimeout: 1
   FallTimeout: 0.15
   Grounded: 1
-  GroundedOffset: -0.14
+  GroundedOffset: 0.15
   GroundedRadius: 0.28
   GroundLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   CinemachineCameraTarget: {fileID: 1781271106}
-  lookSensitivity: {x: 0, y: 0}
-  TopClamp: 70
+  lookSensitivity: {x: 4, y: 5}
+  TopClamp: 50
   BottomClamp: -30
-  CameraAngleOverride: 0
-  LockCameraPosition: 0
+  CameraAngleOverride: -10
+  LockCameraPosition: 1
   isAscending: 0
   isDescending: 0
   isOnObjectAboveGround: 0
@@ -5333,7 +5333,7 @@ GameObject:
   - component: {fileID: 1781271107}
   m_Layer: 0
   m_Name: PlayerCameraTarget
-  m_TagString: Untagged
+  m_TagString: CinemachineTarget
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -235,6 +235,7 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     private void CameraRotation()
     {
+        Debug.Log("-------- input.look" + _input.look);
         // if there is an input and camera position is not fixed
         if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
         {
@@ -244,6 +245,8 @@ public class ComplexPlayerMovement : MonoBehaviour
             // Mouse sensitivity
             _cinemachineTargetYaw += _input.look.x * deltaTimeMultiplier * lookSensitivity.x;
             _cinemachineTargetPitch += _input.look.y * deltaTimeMultiplier * lookSensitivity.y;
+            Debug.Log("_cinemachineTargetYaw: " + _cinemachineTargetYaw);
+            Debug.Log("Pitch: " + _cinemachineTargetPitch);
         }
 
         // clamp our rotations so our values are limited 360 degrees
@@ -459,7 +462,7 @@ public class ComplexPlayerMovement : MonoBehaviour
             movement = Vector2.zero;
         }
     } */
-    public void OnJump(InputAction.CallbackContext ctx)
+  /*  public void OnJump(InputAction.CallbackContext ctx)
     {
         if (ctx.performed)
         {
@@ -469,7 +472,7 @@ public class ComplexPlayerMovement : MonoBehaviour
         {
             isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
         }
-    }
+    }*/
 
     // ------------ Move ----------- //
 
@@ -481,7 +484,7 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     // ------------ JUMP ------------ //
 
-    void JumpControl()
+   /* void JumpControl()
     {
         if (isJumpPressed)
         {
@@ -496,7 +499,7 @@ public class ComplexPlayerMovement : MonoBehaviour
             isJumping = false;
             //playervelocity.y -= fallingForce;
         }
-    }
+    }*/
     IEnumerator GroundChecker()
     {
         while (true)
@@ -510,7 +513,9 @@ public class ComplexPlayerMovement : MonoBehaviour
     {
         Move();
         GravityControl();
-        JumpControl();
+       
+       // JumpControl();
+  
     }
 
     private void LateUpdate()

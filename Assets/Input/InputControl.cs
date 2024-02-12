@@ -33,6 +33,7 @@ using UnityEngine.InputSystem;
 			if(cursorInputForLook)
 			{
 				LookInput(value.Get<Vector2>());
+            Debug.Log("LookInput value: " + value.ToString());
 			}
 		}
 
