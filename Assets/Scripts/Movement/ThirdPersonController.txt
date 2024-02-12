@@ -1,20 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
+ï»¿
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
-
-[RequireComponent(typeof(PlayerInput))] // Good practise. New Input System implementation
-#if ENABLE_INPUT_SYSTEM
-[RequireComponent(typeof(InputControl))] // Instead of StarterAssets
 #endif
-[RequireComponent(typeof(CharacterController))]
 
-public class ComplexPlayerMovement : MonoBehaviour
+/* Note: animations are called via the controller for both the character and capsule using animator null checks
+ */
+
+//[RequireComponent(typeof(CharacterController))]
+//#if ENABLE_INPUT_SYSTEM
+//[RequireComponent(typeof(PlayerInput))]
+//#endif
+public class ThirdPersonController : MonoBehaviour
 {
-#if ENABLE_INPUT_SYSTEM
-    private PlayerInput _playerInput;
-#endif
-
     [Header("Testing")]
     public float targetSpeedInAnimator;
     public float maxSpeed;
@@ -82,17 +80,8 @@ public class ComplexPlayerMovement : MonoBehaviour
     [Tooltip("For locking the camera position on all axis")]
     public bool LockCameraPosition = false;
 
-    private bool IsCurrentDeviceMouse
-    {
-        get
-        {
-#if ENABLE_INPUT_SYSTEM
-            return _playerInput.currentControlScheme == "KeyboardMouse";
-#else
-            return false
-#endif   
-        }
-    }
+    // input
+    InputAction _input; // input Class generoidaan Inspectorissa
 
     // cinemachine
     private float _cinemachineTargetYaw;
@@ -125,59 +114,29 @@ public class ComplexPlayerMovement : MonoBehaviour
     private int _animIDFreeFall;
     private int _animIDMotionSpeed;
 
+#if ENABLE_INPUT_SYSTEM
+    private PlayerInput _playerInput;
+#endif
     private Animator _animator;
+    private CharacterController _controller;
 
     private GameObject _mainCamera;
 
     private const float _threshold = 0.01f;
 
     private bool _hasAnimator;
+    private Vector3 spherePosition; // Checks the ground
 
-    [SerializeField] float speed = 10.0f;
-    private Vector2 movement;
-    private Vector3 playervelocity;
-
-    //..... Jumping .....//
-
-    bool isOnAir; // Saattaa olla myös OnWater joten tehdään oma ilmassaoloehto
-    bool isFalling;
-    bool isJumping;
-    bool isOnGround;
-    bool isJumpPressed;
-    [SerializeField] float initialJumpVelocity;
-    [SerializeField] float maxJumpHeight;
-    [SerializeField] float maxJumpTime;
-    [SerializeField] float timeToReachTop;
-    [SerializeField] float jumpForce;
-    [SerializeField] float fallingForce;
-
-    // -------- Gravity variables --------- //
-    [SerializeField] float gravity;
-    readonly float groundedGravity = -0.05f;
-
-    Material playerSkin;
-
-    private CharacterController _controller;
-    private InputControl _input; // input Class generoidaan Inspectorissa
-
-
-    void Awake()
+    private void Awake()
     {
         // get a reference to our main camera
         if (_mainCamera == null)
         {
             _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
         }
-        _controller = GetComponent<CharacterController>();
-        timeToReachTop = maxJumpTime / 2;
-        gravity = (-4 * maxJumpTime) / timeToReachTop;
-        initialJumpVelocity = (2 * maxJumpHeight) / timeToReachTop;
     }
-    void Start()
+    private void Start()
     {
-        _playerInput = GetComponent<PlayerInput>();
-        _input = GetComponent<InputControl>();
-
         isAlive = true;
         MoveSpeed = NormalWalkingSpeed;
         _animIDMotionSpeed = 1;
@@ -195,20 +154,30 @@ public class ComplexPlayerMovement : MonoBehaviour
         // reset our timeouts on start
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
-
-
-        StartCoroutine(GroundChecker());
-
     }
+
+    private void Update()
+    {
+        _hasAnimator = TryGetComponent(out _animator);
+
+        JumpAndGravity();
+        GroundedCheck();
+        Move();
+    }
+
+    private void LateUpdate()
+    {
+        CameraRotation();
+    }
+
     private void AssignAnimationIDs()
     {
         _animIDSpeed = Animator.StringToHash("Speed");
         _animIDGrounded = Animator.StringToHash("Grounded");
-       // _animIDJump = Animator.StringToHash("Jump");
-       // _animIDFreeFall = Animator.StringToHash("FreeFall");
+        _animIDJump = Animator.StringToHash("Jump");
+        _animIDFreeFall = Animator.StringToHash("FreeFall");
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
-
     private void GroundedCheck()
     {
         // set sphere position, with offset
@@ -253,6 +222,73 @@ public class ComplexPlayerMovement : MonoBehaviour
         // Cinemachine will follow this target
         CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride,
             _cinemachineTargetYaw, 0.0f);
+    }
+
+    private void Move()
+    {
+        // set target speed based on move speed, sprint speed and if sprint is pressed
+        float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+
+        // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
+
+        // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
+        // if there is no input, set the target speed to 0
+        if (_input.move == Vector2.zero) targetSpeed = 0.0f;
+
+        // a reference to the players current horizontal velocity
+        float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
+
+        float speedOffset = 0.1f;
+        float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
+
+        // accelerate or decelerate to target speed
+        if (currentHorizontalSpeed < targetSpeed - speedOffset ||
+            currentHorizontalSpeed > targetSpeed + speedOffset)
+        {
+            // creates curved result rather than a linear one giving a more organic speed change
+            // note T in Lerp is clamped, so we don't need to clamp our speed
+            _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
+                Time.deltaTime * SpeedChangeRate);
+
+            // round speed to 3 decimal places
+            _speed = Mathf.Round(_speed * 1000f) / 1000f;
+        }
+        else
+        {
+            _speed = targetSpeed;
+        }
+
+        _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
+        if (_animationBlend < 0.01f) _animationBlend = 0f;
+
+        // normalise input direction
+        Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
+
+        // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
+        // if there is a move input rotate player when the player is moving
+        if (_input.move != Vector2.zero)
+        {
+            _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
+                              _mainCamera.transform.eulerAngles.y;
+            float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
+                RotationSmoothTime);
+
+            // rotate to face input direction relative to camera position
+            transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+        }
+
+        Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+
+        // move the player
+        _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
+                         new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+
+        // update animator if using character
+        if (_hasAnimator)
+        {
+            _animator.SetFloat(_animIDSpeed, _animationBlend);
+            _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
+        }
     }
 
     private void JumpAndGravity()
@@ -345,176 +381,4 @@ public class ComplexPlayerMovement : MonoBehaviour
             GroundedRadius);
     }
 
-    void MaterialColorControl(Color color)
-    {
-        Transform nose = transform.Find("Nose");
-        if (nose != null)
-        {
-            if (nose.TryGetComponent<Renderer>(out var renderer))
-            {
-                renderer.material.color = color;
-            }
-        }
-    }
-
-    private void GravityControl()
-    {
-        if (isOnGround)
-        {
-            isFalling = false;
-            if (playervelocity.y >= 0) playervelocity.y += groundedGravity;
-            MaterialColorControl(Color.green);
-
-        }
-        else
-        {
-            playervelocity.y += gravity * Time.deltaTime;
-            MaterialColorControl(Color.blue);
-
-        }
-    }
-    // ------------- Events register -------------//
-
-    private void Move() {
-
-        // set target speed based on move speed, sprint speed and if sprint is pressed
-        float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
-
-        // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
-
-        // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-        // if there is no input, set the target speed to 0
-        if (_input.move == Vector2.zero) targetSpeed = 0.0f;
-
-        // a reference to the players current horizontal velocity
-        float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
-
-        float speedOffset = 0.1f;
-        float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
-
-        // accelerate or decelerate to target speed
-        if (currentHorizontalSpeed < targetSpeed - speedOffset ||
-            currentHorizontalSpeed > targetSpeed + speedOffset)
-        {
-            // creates curved result rather than a linear one giving a more organic speed change
-            // note T in Lerp is clamped, so we don't need to clamp our speed
-            _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude,
-                Time.deltaTime * SpeedChangeRate);
-
-            // round speed to 3 decimal places
-            _speed = Mathf.Round(_speed * 1000f) / 1000f;
-        }
-        else
-        {
-            _speed = targetSpeed;
-        }
-
-        _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
-        if (_animationBlend < 0.01f) _animationBlend = 0f;
-
-        // normalise input direction
-        Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
-
-        // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
-        // if there is a move input rotate player when the player is moving
-        if (_input.move != Vector2.zero)
-        {
-            _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
-                              _mainCamera.transform.eulerAngles.y;
-            float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
-                RotationSmoothTime);
-
-            // rotate to face input direction relative to camera position
-            transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-        }
-
-        Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
-
-        // move the player
-        _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
-                         new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
-
-        // update animator if using character
-        if (_hasAnimator)
-        {
-            _animator.SetFloat(_animIDSpeed, _animationBlend);
-            _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
-        }
-
-    }
-    /*
-    public void OnMove(InputAction.CallbackContext ctx)
-    {
-        if (ctx.started)
-        {
-            movement = ctx.ReadValue<Vector2>();
-        }
-        if (ctx.performed)
-        {
-
-            Debug.Log("Moving " + movement);
-        }
-        if (ctx.canceled)
-        {
-            movement = Vector2.zero;
-        }
-    } */
-    public void OnJump(InputAction.CallbackContext ctx)
-    {
-        if (ctx.performed)
-        {
-            isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
-        }
-        if (ctx.canceled)
-        {
-            isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
-        }
-    }
-
-    // ------------ Move ----------- //
-
-    //void Move()
-    //{
-    //    Vector3 move = new(movement.x, playervelocity.y, movement.y);
-    //    _controller.Move(speed * Time.deltaTime * move);
-    //}
-
-    // ------------ JUMP ------------ //
-
-    void JumpControl()
-    {
-        if (isJumpPressed)
-        {
-            isJumping = true;
-            playervelocity.y = initialJumpVelocity;
-
-            // playervelocity.y += jumpForce * Time.deltaTime; ;
-            // Debug.Log("Jumping pressed. Playervelocity.y = " + playervelocity.y);
-        }
-        else if (!isJumpPressed || !isOnGround)
-        {
-            isJumping = false;
-            //playervelocity.y -= fallingForce;
-        }
-    }
-    IEnumerator GroundChecker()
-    {
-        while (true)
-        {
-            isOnGround = _controller.isGrounded;
-            Debug.Log("Coroutine says: isOnGround ===== " + isOnGround);
-            yield return new WaitForSeconds(0.1f); // Ei yritä checkaa joka framella 
-        }
-    }
-    void Update()
-    {
-        Move();
-        GravityControl();
-        JumpControl();
-    }
-
-    private void LateUpdate()
-    {
-        CameraRotation();
-    }
 }
