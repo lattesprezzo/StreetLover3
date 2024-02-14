@@ -22,6 +22,8 @@ using UnityEngine.InputSystem;
         public bool cursorLocked = true;
         public bool cursorInputForLook = true;
 
+    [SerializeField] Vector2 lookvalue;
+
 #if ENABLE_INPUT_SYSTEM
 		public void OnMove(InputValue value)
 		{
@@ -32,8 +34,8 @@ using UnityEngine.InputSystem;
 		{
 			if(cursorInputForLook)
 			{
-				LookInput(value.Get<Vector2>());
-            Debug.Log("LookInput value: " + value.ToString());
+            LookInput(value.Get<Vector2>());
+
 			}
 		}
 

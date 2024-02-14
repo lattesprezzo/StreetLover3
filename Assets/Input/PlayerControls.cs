@@ -29,9 +29,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             ""actions"": [
                 {
                     ""name"": ""Move"",
-                    ""type"": ""Button"",
+                    ""type"": ""Value"",
                     ""id"": ""6e2fceb7-b12e-4aa8-bbef-a9b5472268db"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": ""Hold"",
                     ""initialStateCheck"": true
@@ -225,7 +225,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Pointer>/delta"",
                     ""interactions"": """",
                     ""processors"": ""InvertVector2(invertX=false),ScaleVector2(x=0.05,y=0.05)"",
-                    ""groups"": "";Keyboard&Mouse;Touch"",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Look"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -95,7 +94,9 @@ public class ComplexPlayerMovement : MonoBehaviour
     }
 
     // cinemachine
+    [SerializeField]
     private float _cinemachineTargetYaw;
+    [SerializeField]
     private float _cinemachineTargetPitch;
 
     // player
@@ -158,7 +159,10 @@ public class ComplexPlayerMovement : MonoBehaviour
     Material playerSkin;
 
     private CharacterController _controller;
-    private InputControl _input; // input Class generoidaan Inspectorissa
+
+    [SerializeField]
+    private InputControl _input; // input Classia ei generoida Send Message-tapauksessa
+    [SerializeField] float _inputLookY;
 
 
     void Awake()
@@ -181,7 +185,9 @@ public class ComplexPlayerMovement : MonoBehaviour
         isAlive = true;
         MoveSpeed = NormalWalkingSpeed;
         _animIDMotionSpeed = 1;
-        _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
+        // _cinemachineTargetYaw = 300f; // This works
+        //_cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
+
         _hasAnimator = TryGetComponent(out _animator);
         _controller = GetComponent<CharacterController>();
 #if ENABLE_INPUT_SYSTEM
@@ -191,21 +197,17 @@ public class ComplexPlayerMovement : MonoBehaviour
 #endif
 
         AssignAnimationIDs();
-
         // reset our timeouts on start
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
-
-
         StartCoroutine(GroundChecker());
-
     }
     private void AssignAnimationIDs()
     {
         _animIDSpeed = Animator.StringToHash("Speed");
         _animIDGrounded = Animator.StringToHash("Grounded");
-       // _animIDJump = Animator.StringToHash("Jump");
-       // _animIDFreeFall = Animator.StringToHash("FreeFall");
+        // _animIDJump = Animator.StringToHash("Jump");
+        // _animIDFreeFall = Animator.StringToHash("FreeFall");
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
 
@@ -235,27 +237,24 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     private void CameraRotation()
     {
-        Debug.Log("-------- input.look" + _input.look);
-        // if there is an input and camera position is not fixed
-        if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
-        {
-            //Don't multiply mouse input by Time.deltaTime;
-            float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
+        //Debug.Log("-------- input.look" + _input.look);
+        //Debug.Log("_cinemachineTargetYaw: " + _cinemachineTargetYaw);
+        //Debug.Log("Pitch: " + _cinemachineTargetPitch);
+        //Debug.Log("SQR.MAGNITUDE: " + _input.look.sqrMagnitude);
 
+        // if there is the minimum input and camera position is not fixed
+        //if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
+        //{
             // Mouse sensitivity
-            _cinemachineTargetYaw += _input.look.x * deltaTimeMultiplier * lookSensitivity.x;
-            _cinemachineTargetPitch += _input.look.y * deltaTimeMultiplier * lookSensitivity.y;
-            Debug.Log("_cinemachineTargetYaw: " + _cinemachineTargetYaw);
-            Debug.Log("Pitch: " + _cinemachineTargetPitch);
-        }
-
+            _cinemachineTargetYaw += _input.look.x * lookSensitivity.x;
+            _cinemachineTargetPitch += _input.look.y * lookSensitivity.y;
+     //   }
         // clamp our rotations so our values are limited 360 degrees
         _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
         _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
         // Cinemachine will follow this target
-        CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride,
-            _cinemachineTargetYaw, 0.0f);
+        CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride, _cinemachineTargetYaw, 0.0f);
     }
 
     private void JumpAndGravity()
@@ -378,8 +377,9 @@ public class ComplexPlayerMovement : MonoBehaviour
     }
     // ------------- Events register -------------//
 
-    private void Move() {
-
+    private void Move()
+    {
+        Debug.Log(_input.move);
         // set target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
@@ -391,7 +391,6 @@ public class ComplexPlayerMovement : MonoBehaviour
 
         // a reference to the players current horizontal velocity
         float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
-
         float speedOffset = 0.1f;
         float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
@@ -462,17 +461,17 @@ public class ComplexPlayerMovement : MonoBehaviour
             movement = Vector2.zero;
         }
     } */
-  /*  public void OnJump(InputAction.CallbackContext ctx)
-    {
-        if (ctx.performed)
-        {
-            isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
-        }
-        if (ctx.canceled)
-        {
-            isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
-        }
-    }*/
+    /*  public void OnJump(InputAction.CallbackContext ctx)
+      {
+          if (ctx.performed)
+          {
+              isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
+          }
+          if (ctx.canceled)
+          {
+              isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
+          }
+      }*/
 
     // ------------ Move ----------- //
 
@@ -484,22 +483,22 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     // ------------ JUMP ------------ //
 
-   /* void JumpControl()
-    {
-        if (isJumpPressed)
-        {
-            isJumping = true;
-            playervelocity.y = initialJumpVelocity;
+    /* void JumpControl()
+     {
+         if (isJumpPressed)
+         {
+             isJumping = true;
+             playervelocity.y = initialJumpVelocity;
 
-            // playervelocity.y += jumpForce * Time.deltaTime; ;
-            // Debug.Log("Jumping pressed. Playervelocity.y = " + playervelocity.y);
-        }
-        else if (!isJumpPressed || !isOnGround)
-        {
-            isJumping = false;
-            //playervelocity.y -= fallingForce;
-        }
-    }*/
+             // playervelocity.y += jumpForce * Time.deltaTime; ;
+             // Debug.Log("Jumping pressed. Playervelocity.y = " + playervelocity.y);
+         }
+         else if (!isJumpPressed || !isOnGround)
+         {
+             isJumping = false;
+             //playervelocity.y -= fallingForce;
+         }
+     }*/
     IEnumerator GroundChecker()
     {
         while (true)
@@ -513,9 +512,10 @@ public class ComplexPlayerMovement : MonoBehaviour
     {
         Move();
         GravityControl();
-       
-       // JumpControl();
-  
+        // Debug.Log(CinemachineCameraTarget.transform.rotation);
+        // Debug.Log(CinemachineCameraTarget.transform.rotation.eulerAngles.y);
+        // JumpControl();
+
     }
 
     private void LateUpdate()
