@@ -31,16 +31,17 @@ public class ComplexPlayerMovement : MonoBehaviour
     float _inputLookY;
     public Vector2 input_move;
     public bool jump;
+    public bool sprint;
 
     [Header("Player")]
     private CharacterController _controller;
     [Tooltip("Move speed of the character in m/s")]
-    [SerializeField] float NormalWalkingSpeed = 2.0f;
+    [SerializeField] float NormalWalkingSpeed;
     [SerializeField] float WalkingOnStairsSpeed = 0.55f;
     public float MoveSpeed;
 
     [Tooltip("Sprint speed of the character in m/s")]
-    public float SprintSpeed = 5.335f;
+    public float SprintSpeed;
 
     [Tooltip("How fast the character turns to face movement direction")]
     [Range(0.0f, 0.3f)]
@@ -138,6 +139,7 @@ public class ComplexPlayerMovement : MonoBehaviour
     private int _animIDFreeFall;
     private int _animIDMotionSpeed;
 
+    [SerializeField]
     private Animator _animator;
 
     private GameObject _mainCamera;
@@ -192,14 +194,14 @@ public class ComplexPlayerMovement : MonoBehaviour
 #else
 	Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
-         _input = GetComponent<InputControl>(); // Controls the move/look functions and sends the move/look values here as _input.move/_input.look
+         _input = GetComponent<InputControl>(); 
         _controller = GetComponent<CharacterController>();
 
         isAlive = true;
         MoveSpeed = NormalWalkingSpeed;
         _animIDMotionSpeed = 1;
 
-        //_cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
+
 
         _hasAnimator = TryGetComponent(out _animator);
 
@@ -249,7 +251,7 @@ public class ComplexPlayerMovement : MonoBehaviour
         // EnvironmentScanner.cs controls isAscending
         if (!isOnObjectAboveGround) // Ray hits empty or doesn't hit the stairs - WHAT IF DESCENDING?
         {
-            MoveSpeed = NormalWalkingSpeed;
+            MoveSpeed = NormalWalkingSpeed * Time.deltaTime;
             Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
                 QueryTriggerInteraction.Ignore);
         }
@@ -261,6 +263,7 @@ public class ComplexPlayerMovement : MonoBehaviour
         if (_hasAnimator)
         {
             _animator.SetBool(_animIDGrounded, Grounded);
+            Debug.Log("HAS animator");
         }
     }
 
@@ -296,6 +299,7 @@ public class ComplexPlayerMovement : MonoBehaviour
             // update animator if using character
             if (_hasAnimator)
             {
+                Debug.Log("Has animator");
                 _animator.SetBool(_animIDJump, false);
                 _animator.SetBool(_animIDFreeFall, false);
             }
@@ -414,7 +418,7 @@ public class ComplexPlayerMovement : MonoBehaviour
         }
         if (ctx.performed)
         {
-
+            _input.move = ctx.ReadValue<Vector2>();
             Debug.Log("Moving " + _input.move);
         }
         if (ctx.canceled)
@@ -470,7 +474,7 @@ public class ComplexPlayerMovement : MonoBehaviour
     {
 
         // set target speed based on move speed, sprint speed and if sprint is pressed
-        float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+        float targetSpeed = sprint ? SprintSpeed : MoveSpeed;
 
         // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
 
@@ -497,7 +501,7 @@ public class ComplexPlayerMovement : MonoBehaviour
         }
         else
         {
-            _speed = targetSpeed;
+            _speed = targetSpeed; // If no need to acceleration or deceleration, keep this speed
         }
 
         _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
@@ -534,11 +538,22 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     }
 
-    //void Move()
-    //{
-    //    Vector3 move = new(movement.x, playervelocity.y, movement.y);
-    //    _controller.Move(speed * Time.deltaTime * move);
-    //}
+    // ------------ Sprint ------------ //
+
+    public void OnSprint(InputAction.CallbackContext ctx)
+    {
+        if(ctx.started)
+        {
+            sprint = ctx.ReadValueAsButton();
+            Debug.Log(sprint);  
+        }
+        if(ctx.canceled)
+        {
+            sprint = ctx.ReadValueAsButton();
+        }
+    }
+
+
 
     // ------------ JUMP ------------ //
 
