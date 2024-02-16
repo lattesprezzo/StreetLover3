@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,17 +12,28 @@ using UnityEngine.InputSystem;
 public class ComplexPlayerMovement : MonoBehaviour
 {
 #if ENABLE_INPUT_SYSTEM
-    private PlayerInput _playerInput;
+
+    private PlayerInput _playerInput; // Receives input from PlayerControls (Input Action Asset)
 #endif
 
     [Header("Testing")]
+
     public float targetSpeedInAnimator;
     public float maxSpeed;
     public float minSpeed;
     public bool isIdle;
     public bool hasMovedOnce = false;
 
+    [Header("Input")]
+    [SerializeField]
+    private InputControl _input; // input Classia ei generoida Send Message-tapauksessa
+    [SerializeField]
+    float _inputLookY;
+    public Vector2 input_move;
+    public bool jump;
+
     [Header("Player")]
+    private CharacterController _controller;
     [Tooltip("Move speed of the character in m/s")]
     [SerializeField] float NormalWalkingSpeed = 2.0f;
     [SerializeField] float WalkingOnStairsSpeed = 0.55f;
@@ -158,16 +170,12 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     Material playerSkin;
 
-    private CharacterController _controller;
-
-    [SerializeField]
-    private InputControl _input; // input Classia ei generoida Send Message-tapauksessa
-    [SerializeField] float _inputLookY;
-
 
     void Awake()
     {
-        // get a reference to our main camera
+
+
+        // Reference to the main camera
         if (_mainCamera == null)
         {
             _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
@@ -179,22 +187,21 @@ public class ComplexPlayerMovement : MonoBehaviour
     }
     void Start()
     {
-        _playerInput = GetComponent<PlayerInput>();
-        _input = GetComponent<InputControl>();
-
-        isAlive = true;
-        MoveSpeed = NormalWalkingSpeed;
-        _animIDMotionSpeed = 1;
-        // _cinemachineTargetYaw = 300f; // This works
-        //_cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
-
-        _hasAnimator = TryGetComponent(out _animator);
-        _controller = GetComponent<CharacterController>();
 #if ENABLE_INPUT_SYSTEM
         _playerInput = GetComponent<PlayerInput>();
 #else
 	Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
+         _input = GetComponent<InputControl>(); // Controls the move/look functions and sends the move/look values here as _input.move/_input.look
+        _controller = GetComponent<CharacterController>();
+
+        isAlive = true;
+        MoveSpeed = NormalWalkingSpeed;
+        _animIDMotionSpeed = 1;
+
+        //_cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
+
+        _hasAnimator = TryGetComponent(out _animator);
 
         AssignAnimationIDs();
         // reset our timeouts on start
@@ -202,12 +209,34 @@ public class ComplexPlayerMovement : MonoBehaviour
         _fallTimeoutDelta = FallTimeout;
         StartCoroutine(GroundChecker());
     }
+
+    //private void OnMovePerformed(InputAction.CallbackContext context)
+    //{
+    //    // context.ReadValue<Vector2>() gives you the input value
+    //    _input.move = context.ReadValue<Vector2>();
+    //    // You can call your Move() function here
+
+    //}
+
+    //private void OnMoveCanceled(InputAction.CallbackContext context)
+    //{
+    //    // When the move action is canceled, you might want to stop the movement
+    //    _input.move = Vector2.zero;
+    //    // You can call your Move() function here
+
+    //}
+    //private void OnDestroy()
+    //{
+    //    // Don't forget to unsubscribe from the events when the object is destroyed
+    //   // _input.move.performed -= OnMovePerformed;
+    //    //_input.move.canceled -= OnMoveCanceled;
+    //}
     private void AssignAnimationIDs()
     {
         _animIDSpeed = Animator.StringToHash("Speed");
         _animIDGrounded = Animator.StringToHash("Grounded");
-        // _animIDJump = Animator.StringToHash("Jump");
-        // _animIDFreeFall = Animator.StringToHash("FreeFall");
+        _animIDJump = Animator.StringToHash("Jump");
+         _animIDFreeFall = Animator.StringToHash("FreeFall");
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
 
@@ -278,7 +307,7 @@ public class ComplexPlayerMovement : MonoBehaviour
             }
 
             // Jump
-            if (_input.jump && _jumpTimeoutDelta <= 0.0f)
+            if (jump && _jumpTimeoutDelta <= 0.0f)
             {
                 // the square root of H * -2 * G = how much velocity needed to reach desired height
                 _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
@@ -316,7 +345,7 @@ public class ComplexPlayerMovement : MonoBehaviour
             }
 
             // if we are not grounded, do not jump
-            _input.jump = false;
+            jump = false;
         }
 
         // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
@@ -366,20 +395,80 @@ public class ComplexPlayerMovement : MonoBehaviour
             isFalling = false;
             if (playervelocity.y >= 0) playervelocity.y += groundedGravity;
             MaterialColorControl(Color.green);
-
         }
         else
         {
             playervelocity.y += gravity * Time.deltaTime;
             MaterialColorControl(Color.blue);
-
         }
     }
     // ------------- Events register -------------//
 
+    
+    
+    public void OnMove(InputAction.CallbackContext ctx)
+    {
+        if (ctx.started)
+        {
+            _input.move = ctx.ReadValue<Vector2>();
+        }
+        if (ctx.performed)
+        {
+
+            Debug.Log("Moving " + _input.move);
+        }
+        if (ctx.canceled)
+        {
+           _input.move = Vector2.zero;
+        }
+    }
+    public void OnLook(InputAction.CallbackContext ctx)
+    {
+        if (ctx.started)
+        {
+            _input.look = ctx.ReadValue<Vector2>(); 
+        }
+        if(ctx.performed)
+        {
+            //_input.look = ctx.ReadValue<Vector2>();
+           // Debug.Log("Looking around " + _input.look);
+        }
+
+        if(ctx.canceled) { 
+          _input.look = Vector2.zero; // Jos tätä ei ole, niin kamera elää ja pyörii loputtomiin Clampin sallimissa rajoissa
+        }
+    }
+    //public void OnJump(InputValue value)
+    //{
+    //    _input.jump = value.isPressed;
+    //   Debug.Log(_input.jump);  
+    //}
+    //public void JumpInput(bool newJumpState)
+    //{
+    //    jump = newJumpState;
+    //    Debug.Log(jump);
+    //}
+
+    public void OnJump(InputAction.CallbackContext ctx)
+    {
+        if (ctx.started)
+        {
+       jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
+        }
+        if (ctx.performed)
+        {
+            }
+        if (ctx.canceled)
+        {
+            jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
+        }
+    }
+
+    // ------------ Move ----------- //
+
     private void Move()
     {
-        Debug.Log(_input.move);
+
         // set target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
@@ -444,36 +533,6 @@ public class ComplexPlayerMovement : MonoBehaviour
         }
 
     }
-    /*
-    public void OnMove(InputAction.CallbackContext ctx)
-    {
-        if (ctx.started)
-        {
-            movement = ctx.ReadValue<Vector2>();
-        }
-        if (ctx.performed)
-        {
-
-            Debug.Log("Moving " + movement);
-        }
-        if (ctx.canceled)
-        {
-            movement = Vector2.zero;
-        }
-    } */
-    /*  public void OnJump(InputAction.CallbackContext ctx)
-      {
-          if (ctx.performed)
-          {
-              isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
-          }
-          if (ctx.canceled)
-          {
-              isJumpPressed = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
-          }
-      }*/
-
-    // ------------ Move ----------- //
 
     //void Move()
     //{
@@ -482,6 +541,8 @@ public class ComplexPlayerMovement : MonoBehaviour
     //}
 
     // ------------ JUMP ------------ //
+
+
 
     /* void JumpControl()
      {
@@ -510,8 +571,8 @@ public class ComplexPlayerMovement : MonoBehaviour
     }
     void Update()
     {
-        Move();
-        GravityControl();
+        
+       // GravityControl();
         // Debug.Log(CinemachineCameraTarget.transform.rotation);
         // Debug.Log(CinemachineCameraTarget.transform.rotation.eulerAngles.y);
         // JumpControl();
@@ -521,5 +582,7 @@ public class ComplexPlayerMovement : MonoBehaviour
     private void LateUpdate()
     {
         CameraRotation();
+        Move();
+        JumpAndGravity();
     }
 }
