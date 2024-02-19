@@ -1,5 +1,4 @@
 using System.Collections;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -24,17 +23,32 @@ public class ComplexPlayerMovement : MonoBehaviour
     public bool isIdle;
     public bool hasMovedOnce = false;
 
-    [Header("Input")]
+    [Header("-------- Input --------")]
+    [Space(10)]
     [SerializeField]
     private InputControl _input; // input Classia ei generoida Send Message-tapauksessa
     [SerializeField]
     float _inputLookY;
     public Vector2 input_move;
+
     public bool jump;
     public bool sprint;
 
-    [Header("Player")]
+
+    [Header("-------- Player --------")]
+    [Space(10)]
     private CharacterController _controller;
+    private GameObject _mainCamera;
+    // health
+    public bool isAlive;
+    private float _speed;
+    private float _targetRotation = 0.0f;
+
+    [SerializeField] float speed = 10.0f;
+    private Vector3 playervelocity;
+    private float _rotationVelocity;
+    private float _verticalVelocity;
+    private readonly float _terminalVelocity = 53.0f;
     [Tooltip("Move speed of the character in m/s")]
     [SerializeField] float NormalWalkingSpeed;
     [SerializeField] float WalkingOnStairsSpeed = 0.55f;
@@ -50,107 +64,11 @@ public class ComplexPlayerMovement : MonoBehaviour
     [Tooltip("Acceleration and deceleration")]
     public float SpeedChangeRate = 10.0f;
 
+    [Header("-------- Jump --------")]
     [Space(10)]
-    [Tooltip("The height the player can jump")]
-    public float JumpHeight = 1.2f;
-
-    [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
-    public float Gravity = -15.0f;
-
-    [Space(10)]
-    [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
-    public float JumpTimeout = 0.50f;
-
-    [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
-    public float FallTimeout = 0.15f;
-
-    [Header("Player Grounded")]
-    [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
-    public bool Grounded = true;
-
-    [Tooltip("Useful for rough ground")]
-    public float GroundedOffset = -0.14f;
-
-    [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
-    public float GroundedRadius = 0.28f;
-
-    [Tooltip("What layers the character uses as ground")]
-    public LayerMask GroundLayers;
-
-    [Header("Cinemachine")]
-    [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
-    public GameObject CinemachineCameraTarget;
-    public Vector2 lookSensitivity;
-
-    [Tooltip("How far in degrees can you move the camera up")]
-    public float TopClamp = 70.0f;
-
-    [Tooltip("How far in degrees can you move the camera down")]
-    public float BottomClamp = -30.0f;
-
-    [Tooltip("Additional degress to override the camera. Useful for fine tuning camera position when locked")]
-    public float CameraAngleOverride = 0.0f;
-
-    [Tooltip("For locking the camera position on all axis")]
-    public bool LockCameraPosition = false;
-
-    private bool IsCurrentDeviceMouse
-    {
-        get
-        {
-#if ENABLE_INPUT_SYSTEM
-            return _playerInput.currentControlScheme == "KeyboardMouse";
-#else
-            return false
-#endif   
-        }
-    }
-
-    // cinemachine
-    [SerializeField]
-    private float _cinemachineTargetYaw;
-    [SerializeField]
-    private float _cinemachineTargetPitch;
-
-    // player
-    private float _speed;
-    private float _animationBlend;
-    private float _targetRotation = 0.0f;
-    private float _rotationVelocity;
-    private float _verticalVelocity;
-    private readonly float _terminalVelocity = 53.0f;
-
-    // animation control
-    public bool isAscending; // Walking up the stairs, a slope or climbing. Anything that is happening above the ground except jumping or falling.
-    public bool isDescending;   // Walking down on any object above the ground.
-    public bool isOnObjectAboveGround;
-
-    // health
-    public bool isAlive;
-
     // timeout deltatime
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
-
-    // animation IDs
-    private int _animIDSpeed;
-    private int _animIDGrounded;
-    private int _animIDJump;
-    private int _animIDFreeFall;
-    private int _animIDMotionSpeed;
-
-    [SerializeField]
-    private Animator _animator;
-
-    private GameObject _mainCamera;
-
-    private const float _threshold = 0.01f;
-
-    private bool _hasAnimator;
-
-    [SerializeField] float speed = 10.0f;
-    private Vector2 movement;
-    private Vector3 playervelocity;
 
     //..... Jumping .....//
 
@@ -167,11 +85,95 @@ public class ComplexPlayerMovement : MonoBehaviour
     [SerializeField] float fallingForce;
 
     // -------- Gravity variables --------- //
-    [SerializeField] float gravity;
+    [Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
+    public float Gravity = -15.0f;
     readonly float groundedGravity = -0.05f;
 
-    Material playerSkin;
+    [Tooltip("The height the player can jump")]
+    public float JumpHeight = 1.2f;
 
+
+
+    [Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
+    public float JumpTimeout = 0.50f;
+
+    [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
+    public float FallTimeout = 0.15f;
+
+    [Header("-------- Player Grounded --------")]
+    [Space(10)]
+    [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
+    public bool Grounded = true;
+
+    [Tooltip("Useful for rough ground")]
+    public float GroundedOffset = -0.14f;
+
+    [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
+    public float GroundedRadius = 0.28f;
+
+    [Tooltip("What layers the character uses as ground")]
+    public LayerMask GroundLayers;
+
+    [Header("-------- Cinemachine --------")]
+    [Space(10)]
+
+    [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
+    public GameObject CinemachineCameraTarget;
+    public Vector2 lookSensitivity;
+
+    [Tooltip("Looking sideways")]
+    [SerializeField]
+    private float _cinemachineTargetYaw;
+    [Tooltip("Looking up and down")]
+    [SerializeField]
+    private float _cinemachineTargetPitch;
+
+    [Tooltip("How far in degrees can you move the camera up")]
+    public float TopClamp = 70.0f;
+
+    [Tooltip("How far in degrees can you move the camera down")]
+    public float BottomClamp = -30.0f;
+
+    [Tooltip("Additional degress to override the camera. Useful for fine tuning camera position when locked")]
+    public float CameraAngleOverride = 0.0f;
+
+    [Tooltip("For locking the camera position on all axis")]
+    public bool LockCameraPosition = false;
+
+    [Header("-------- Animation control --------")]
+    [Space(10)]
+
+    [SerializeField]
+    private Animator _animator;
+    private bool _hasAnimator;
+    private float _animationBlend;
+    public bool isAscending; // Walking up the stairs, a slope or climbing. Anything that is happening above the ground except jumping or falling.
+    public bool isDescending;   // Walking down on any object above the ground.
+    public bool isOnObjectAboveGround;
+    // animation IDs
+
+    private int _animIDSpeed;
+    private int _animIDGrounded;
+    private int _animIDJump;
+    private int _animIDFreeFall;
+    private int _animIDMotionSpeed;
+
+
+    private bool IsCurrentDeviceMouse
+    {
+        get
+        {
+#if ENABLE_INPUT_SYSTEM
+            return _playerInput.currentControlScheme == "KeyboardMouse";
+#else
+            return false
+#endif   
+        }
+    }
+
+    private const float _threshold = 0.01f;
+
+    Material playerSkin;
 
     void Awake()
     {
@@ -183,9 +185,9 @@ public class ComplexPlayerMovement : MonoBehaviour
             _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
         }
         _controller = GetComponent<CharacterController>();
-        timeToReachTop = maxJumpTime / 2;
-        gravity = (-4 * maxJumpTime) / timeToReachTop;
-        initialJumpVelocity = (2 * maxJumpHeight) / timeToReachTop;
+        //timeToReachTop = maxJumpTime / 2;
+        //gravity = (-4 * maxJumpTime) / timeToReachTop;
+        //initialJumpVelocity = (2 * maxJumpHeight) / timeToReachTop;
     }
     void Start()
     {
@@ -194,22 +196,18 @@ public class ComplexPlayerMovement : MonoBehaviour
 #else
 	Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
-         _input = GetComponent<InputControl>(); 
+        _input = GetComponent<InputControl>();
         _controller = GetComponent<CharacterController>();
 
         isAlive = true;
         MoveSpeed = NormalWalkingSpeed;
         _animIDMotionSpeed = 1;
-
-
-
         _hasAnimator = TryGetComponent(out _animator);
-
         AssignAnimationIDs();
         // reset our timeouts on start
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
-        StartCoroutine(GroundChecker());
+        //StartCoroutine(GroundChecker());
     }
 
     //private void OnMovePerformed(InputAction.CallbackContext context)
@@ -238,10 +236,9 @@ public class ComplexPlayerMovement : MonoBehaviour
         _animIDSpeed = Animator.StringToHash("Speed");
         _animIDGrounded = Animator.StringToHash("Grounded");
         _animIDJump = Animator.StringToHash("Jump");
-         _animIDFreeFall = Animator.StringToHash("FreeFall");
+        _animIDFreeFall = Animator.StringToHash("FreeFall");
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
-
     private void GroundedCheck()
     {
         // set sphere position, with offset
@@ -249,24 +246,22 @@ public class ComplexPlayerMovement : MonoBehaviour
             transform.position.z);
 
         // EnvironmentScanner.cs controls isAscending
-        if (!isOnObjectAboveGround) // Ray hits empty or doesn't hit the stairs - WHAT IF DESCENDING?
+        //if (!isOnObjectAboveGround) // Ray hits empty or doesn't hit the stairs - WHAT IF DESCENDING?
+        //{
+        // MoveSpeed = NormalWalkingSpeed * Time.deltaTime;
+        Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
+            QueryTriggerInteraction.Ignore);
+        // }
+        // else // Ray hits the stairs
         {
-            MoveSpeed = NormalWalkingSpeed * Time.deltaTime;
-            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers,
-                QueryTriggerInteraction.Ignore);
-        }
-        else // Ray hits the stairs
-        {
-            MoveSpeed = WalkingOnStairsSpeed;
+            //  MoveSpeed = WalkingOnStairsSpeed;
         }
         // update animator if using character
         if (_hasAnimator)
         {
             _animator.SetBool(_animIDGrounded, Grounded);
-            Debug.Log("HAS animator");
         }
     }
-
     private void CameraRotation()
     {
         //Debug.Log("-------- input.look" + _input.look);
@@ -277,10 +272,10 @@ public class ComplexPlayerMovement : MonoBehaviour
         // if there is the minimum input and camera position is not fixed
         //if (_input.look.sqrMagnitude >= _threshold && !LockCameraPosition)
         //{
-            // Mouse sensitivity
-            _cinemachineTargetYaw += _input.look.x * lookSensitivity.x;
-            _cinemachineTargetPitch += _input.look.y * lookSensitivity.y;
-     //   }
+        // Mouse sensitivity
+        _cinemachineTargetYaw += _input.look.x * lookSensitivity.x;
+        _cinemachineTargetPitch += _input.look.y * lookSensitivity.y;
+        //   }
         // clamp our rotations so our values are limited 360 degrees
         _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
         _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
@@ -299,7 +294,6 @@ public class ComplexPlayerMovement : MonoBehaviour
             // update animator if using character
             if (_hasAnimator)
             {
-                Debug.Log("Has animator");
                 _animator.SetBool(_animIDJump, false);
                 _animator.SetBool(_animIDFreeFall, false);
             }
@@ -313,9 +307,10 @@ public class ComplexPlayerMovement : MonoBehaviour
             // Jump
             if (jump && _jumpTimeoutDelta <= 0.0f)
             {
-                // the square root of H * -2 * G = how much velocity needed to reach desired height
+                // the square root of JH * -2 * G = how much velocity needed to reach desired height
                 _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
-
+                Debug.Log("VerticalVelocity: " + _verticalVelocity);
+                MaterialColorControl(Color.green);
                 // update animator if using character
                 if (_hasAnimator)
                 {
@@ -323,25 +318,26 @@ public class ComplexPlayerMovement : MonoBehaviour
                 }
             }
 
-            // jump timeout
+            // Start counting jump timeout
             if (_jumpTimeoutDelta >= 0.0f)
             {
                 _jumpTimeoutDelta -= Time.deltaTime;
             }
-        }
+        } // Else if NOT grounded:
         else
         {
             // reset the jump timeout timer
             _jumpTimeoutDelta = JumpTimeout;
 
-            // fall timeout
+
+            // Start counting fall timeout
             if (_fallTimeoutDelta >= 0.0f)
             {
                 _fallTimeoutDelta -= Time.deltaTime;
             }
             else
             {
-                // update animator if using character
+                // update animator if using character and do FreeFall-animation
                 if (_hasAnimator)
                 {
                     _animator.SetBool(_animIDFreeFall, true);
@@ -350,6 +346,7 @@ public class ComplexPlayerMovement : MonoBehaviour
 
             // if we are not grounded, do not jump
             jump = false;
+            MaterialColorControl(Color.blue);
         }
 
         // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
@@ -359,6 +356,7 @@ public class ComplexPlayerMovement : MonoBehaviour
         }
     }
 
+    // Control the Camera Rotation angles
     private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
     {
         if (lfAngle < -360f) lfAngle += 360f;
@@ -402,14 +400,14 @@ public class ComplexPlayerMovement : MonoBehaviour
         }
         else
         {
-            playervelocity.y += gravity * Time.deltaTime;
+            playervelocity.y += Gravity * Time.deltaTime;
             MaterialColorControl(Color.blue);
         }
     }
     // ------------- Events register -------------//
 
-    
-    
+
+
     public void OnMove(InputAction.CallbackContext ctx)
     {
         if (ctx.started)
@@ -423,23 +421,24 @@ public class ComplexPlayerMovement : MonoBehaviour
         }
         if (ctx.canceled)
         {
-           _input.move = Vector2.zero;
+            _input.move = Vector2.zero;
         }
     }
     public void OnLook(InputAction.CallbackContext ctx)
     {
         if (ctx.started)
         {
-            _input.look = ctx.ReadValue<Vector2>(); 
+            _input.look = ctx.ReadValue<Vector2>();
         }
-        if(ctx.performed)
+        if (ctx.performed)
         {
             //_input.look = ctx.ReadValue<Vector2>();
-           // Debug.Log("Looking around " + _input.look);
+            // Debug.Log("Looking around " + _input.look);
         }
 
-        if(ctx.canceled) { 
-          _input.look = Vector2.zero; // Jos tätä ei ole, niin kamera elää ja pyörii loputtomiin Clampin sallimissa rajoissa
+        if (ctx.canceled)
+        {
+            _input.look = Vector2.zero; // Jos tätä ei ole, niin kamera elää ja pyörii loputtomiin Clampin sallimissa rajoissa
         }
     }
     //public void OnJump(InputValue value)
@@ -457,14 +456,15 @@ public class ComplexPlayerMovement : MonoBehaviour
     {
         if (ctx.started)
         {
-       jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
+     
+           jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
         }
         if (ctx.performed)
         {
-            }
+        }
         if (ctx.canceled)
         {
-            jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
+          jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
         }
     }
 
@@ -472,7 +472,6 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     private void Move()
     {
-
         // set target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = sprint ? SprintSpeed : MoveSpeed;
 
@@ -542,12 +541,12 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     public void OnSprint(InputAction.CallbackContext ctx)
     {
-        if(ctx.started)
+        if (ctx.started)
         {
             sprint = ctx.ReadValueAsButton();
-            Debug.Log(sprint);  
+            Debug.Log(sprint);
         }
-        if(ctx.canceled)
+        if (ctx.canceled)
         {
             sprint = ctx.ReadValueAsButton();
         }
@@ -586,18 +585,20 @@ public class ComplexPlayerMovement : MonoBehaviour
     }
     void Update()
     {
-        
-       // GravityControl();
-        // Debug.Log(CinemachineCameraTarget.transform.rotation);
-        // Debug.Log(CinemachineCameraTarget.transform.rotation.eulerAngles.y);
+        GroundedCheck();
+
+        Move();
+        JumpAndGravity();
+
+
         // JumpControl();
 
     }
 
     private void LateUpdate()
     {
+
         CameraRotation();
-        Move();
-        JumpAndGravity();
+
     }
 }

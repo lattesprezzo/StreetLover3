@@ -763,7 +763,7 @@ Transform:
   m_GameObject: {fileID: 516562980}
   serializedVersion: 2
   m_LocalRotation: {x: 0.06731874, y: -0, z: -0, w: 0.99773157}
-  m_LocalPosition: {x: 0.033996582, y: 1.8036641, z: -2.323883}
+  m_LocalPosition: {x: 0.033996582, y: 1.803664, z: -2.323883}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -901,7 +901,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 9875a245ac49007498213638a307faa1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -961,7 +961,7 @@ Transform:
   m_GameObject: {fileID: 680818911}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 611.4442, y: 0, z: 273.52548}
+  m_LocalPosition: {x: 611.4442, y: -0.06, z: 273.52548}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1131,12 +1131,12 @@ CharacterController:
   m_Enabled: 1
   serializedVersion: 3
   m_Height: 1.53
-  m_Radius: 0.5
+  m_Radius: 0.38
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0.02, y: 0.77, z: 0.17}
+  m_Center: {x: 0.02, y: 0.85, z: 0.17}
 --- !u!114 &680818919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1159,43 +1159,42 @@ MonoBehaviour:
   input_move: {x: 0, y: 0}
   jump: 0
   sprint: 0
+  isAlive: 0
+  speed: 10
   NormalWalkingSpeed: 1.6
   WalkingOnStairsSpeed: 0.55
   MoveSpeed: 0
   SprintSpeed: 4
   RotationSmoothTime: 0.12
   SpeedChangeRate: 10
-  JumpHeight: 1.2
-  Gravity: -15
-  JumpTimeout: 0.5
-  FallTimeout: 0.15
-  Grounded: 1
-  GroundedOffset: -0.14
-  GroundedRadius: 0.28
-  GroundLayers:
-    serializedVersion: 2
-    m_Bits: 1
-  CinemachineCameraTarget: {fileID: 1781271106}
-  lookSensitivity: {x: 4, y: 4}
-  TopClamp: 70
-  BottomClamp: -30
-  CameraAngleOverride: 0
-  LockCameraPosition: 0
-  _cinemachineTargetYaw: 0
-  _cinemachineTargetPitch: 0
-  isAscending: 0
-  isDescending: 0
-  isOnObjectAboveGround: 0
-  isAlive: 0
-  _animator: {fileID: 0}
-  speed: 10
   initialJumpVelocity: 0
   maxJumpHeight: 0
   maxJumpTime: 0
   timeToReachTop: 0
   jumpForce: 0
   fallingForce: 0
-  gravity: 0
+  Gravity: -15
+  JumpHeight: 1.2
+  JumpTimeout: 0.33
+  FallTimeout: 0.44
+  Grounded: 1
+  GroundedOffset: 0.08
+  GroundedRadius: 0.18
+  GroundLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  CinemachineCameraTarget: {fileID: 1781271106}
+  lookSensitivity: {x: 4, y: 4}
+  _cinemachineTargetYaw: 0
+  _cinemachineTargetPitch: 0
+  TopClamp: 70
+  BottomClamp: -30
+  CameraAngleOverride: 0
+  LockCameraPosition: 0
+  _animator: {fileID: 680818921}
+  isAscending: 0
+  isDescending: 0
+  isOnObjectAboveGround: 0
 --- !u!114 &680818920
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5601,7 +5600,7 @@ GameObject:
   - component: {fileID: 1936603838}
   - component: {fileID: 1936603837}
   m_Layer: 0
-  m_Name: sss
+  m_Name: Nose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5781,7 +5780,7 @@ Transform:
   m_GameObject: {fileID: 1972064333}
   serializedVersion: 2
   m_LocalRotation: {x: 0.06731874, y: -0, z: -0, w: 0.99773157}
-  m_LocalPosition: {x: 0.033996582, y: 1.8036641, z: -2.323883}
+  m_LocalPosition: {x: 0.033996582, y: 1.803664, z: -2.323883}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
