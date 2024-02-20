@@ -173,6 +173,7 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     private const float _threshold = 0.01f;
 
+    public GameObject nose;
     Material playerSkin;
 
     void Awake()
@@ -208,6 +209,8 @@ public class ComplexPlayerMovement : MonoBehaviour
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
         //StartCoroutine(GroundChecker());
+     
+
     }
 
     //private void OnMovePerformed(InputAction.CallbackContext context)
@@ -310,7 +313,7 @@ public class ComplexPlayerMovement : MonoBehaviour
                 // the square root of JH * -2 * G = how much velocity needed to reach desired height
                 _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
                 Debug.Log("VerticalVelocity: " + _verticalVelocity);
-                MaterialColorControl(Color.green);
+
                 // update animator if using character
                 if (_hasAnimator)
                 {
@@ -322,18 +325,20 @@ public class ComplexPlayerMovement : MonoBehaviour
             if (_jumpTimeoutDelta >= 0.0f)
             {
                 _jumpTimeoutDelta -= Time.deltaTime;
+
             }
         } // Else if NOT grounded:
         else
         {
             // reset the jump timeout timer
             _jumpTimeoutDelta = JumpTimeout;
-
+            MaterialColorControl(Color.green);
 
             // Start counting fall timeout
             if (_fallTimeoutDelta >= 0.0f)
             {
                 _fallTimeoutDelta -= Time.deltaTime;
+                MaterialColorControl(Color.red);
             }
             else
             {
@@ -346,7 +351,8 @@ public class ComplexPlayerMovement : MonoBehaviour
 
             // if we are not grounded, do not jump
             jump = false;
-            MaterialColorControl(Color.blue);
+            MaterialColorControl(Color.grey);
+
         }
 
         // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
@@ -380,7 +386,7 @@ public class ComplexPlayerMovement : MonoBehaviour
 
     void MaterialColorControl(Color color)
     {
-        Transform nose = transform.Find("Nose");
+        //Transform nose = transform.Find("PlayerCameraTarget/CameraLookAtSphere/Nose");
         if (nose != null)
         {
             if (nose.TryGetComponent<Renderer>(out var renderer))
@@ -405,8 +411,6 @@ public class ComplexPlayerMovement : MonoBehaviour
         }
     }
     // ------------- Events register -------------//
-
-
 
     public void OnMove(InputAction.CallbackContext ctx)
     {
@@ -456,15 +460,15 @@ public class ComplexPlayerMovement : MonoBehaviour
     {
         if (ctx.started)
         {
-     
-           jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
+
+            jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = true;
         }
         if (ctx.performed)
         {
         }
         if (ctx.canceled)
         {
-          jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
+            jump = ctx.ReadValueAsButton(); // Voisi olla myös vain isJumpPressed = false;
         }
     }
 
