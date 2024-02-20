@@ -1252,7 +1252,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: d5e3904c24e97ff47b249718be68a863, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -1352,7 +1352,7 @@ MonoBehaviour:
   animator: {fileID: 680818921}
   layerIndex: 1
   targetWeight: 1
-  duration: 17.3
+  duration: 3
 --- !u!1 &1015755262 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2134082621032183294, guid: 3b85fb673bb4a7b4082f69b5968b5736,

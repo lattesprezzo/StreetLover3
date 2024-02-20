@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -157,6 +158,10 @@ public class ComplexPlayerMovement : MonoBehaviour
     private int _animIDJump;
     private int _animIDFreeFall;
     private int _animIDMotionSpeed;
+
+    // Events for the LayerWeightChanger
+    public event Action OnStartSprint;
+    public event Action OnStopSprint;
 
 
     private bool IsCurrentDeviceMouse
@@ -538,7 +543,6 @@ public class ComplexPlayerMovement : MonoBehaviour
             _animator.SetFloat(_animIDSpeed, _animationBlend);
             _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
         }
-
     }
 
     // ------------ Sprint ------------ //
@@ -548,11 +552,13 @@ public class ComplexPlayerMovement : MonoBehaviour
         if (ctx.started)
         {
             sprint = ctx.ReadValueAsButton();
-            Debug.Log(sprint);
+            OnStartSprint?.Invoke();
         }
         if (ctx.canceled)
         {
+            Debug.Log("Canceled");
             sprint = ctx.ReadValueAsButton();
+            OnStopSprint?.Invoke(); 
         }
     }
 

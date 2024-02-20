@@ -9,26 +9,43 @@ public class LayerWeightChanger : MonoBehaviour
     public float duration; // Set the duration of the weight change in the inspector
 
     ComplexPlayerMovement sprintValue; // Yhteys p‰‰scriptiin, mist‰ tarvitaan juoksu-boolean
+    Coroutine runningCoroutine; // Referenssi Coroutineen
 
-    void Update()
+
+    private void OnEnable()
     {
         sprintValue = GetComponent<ComplexPlayerMovement>();
-
-        if (sprintValue.sprint)
-        {
-            targetWeight = 1;
-            layerIndex = 1;
-            StartCoroutine(ChangeLayerWeight());
-        }
-        else
-        {
-            targetWeight = 0;
-            layerIndex = 1; 
-            StartCoroutine(ChangeLayerWeight());
-        }
+        sprintValue.OnStartSprint += StartSprint;
+        sprintValue.OnStopSprint += StopSprint;
     }
 
-    IEnumerator ChangeLayerWeight()
+    private void OnDisable()
+    {
+        sprintValue.OnStartSprint -= StartSprint;
+        sprintValue.OnStopSprint -= StopSprint;
+    }
+
+    private void StartSprint()
+    {
+        layerIndex = 1; // The sprint layer index
+        runningCoroutine = StartCoroutine(ChangeLayerWeight(1)); // Set the target weight to 1 for the sprint layer
+    }
+
+    private void StopSprint()
+    {
+        // If a ChangeLayerWeight coroutine is already running, stop it
+        if (runningCoroutine != null)
+        {
+            StopCoroutine(runningCoroutine);
+        }
+
+        Debug.Log("StopSprint() called");
+        layerIndex = 1; // The sprint layer index
+        StartCoroutine(ChangeLayerWeight(0)); // Set the target weight to 0 for the sprint layer
+    }
+
+
+    IEnumerator ChangeLayerWeight(float targetWeight)
     {
         float startTime = Time.time;
         float startWeight = animator.GetLayerWeight(layerIndex);
