@@ -8,11 +8,25 @@ public class LayerWeightChanger : MonoBehaviour
     public float targetWeight; // Set the target weight in the inspector
     public float duration; // Set the duration of the weight change in the inspector
 
+    ComplexPlayerMovement sprintValue; // Yhteys p‰‰scriptiin, mist‰ tarvitaan juoksu-boolean
+
     void Update()
     {
+        sprintValue = GetComponent<ComplexPlayerMovement>();
 
+        if (sprintValue.sprint)
+        {
+            targetWeight = 1;
+            layerIndex = 1;
             StartCoroutine(ChangeLayerWeight());
-         }
+        }
+        else
+        {
+            targetWeight = 0;
+            layerIndex = 1; 
+            StartCoroutine(ChangeLayerWeight());
+        }
+    }
 
     IEnumerator ChangeLayerWeight()
     {
