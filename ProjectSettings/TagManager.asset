@@ -6,6 +6,7 @@ TagManager:
   tags:
   - CinemachineTarget
   - RagDollActivator
+  - BoneControlActivator
   layers:
   - Default
   - TransparentFX

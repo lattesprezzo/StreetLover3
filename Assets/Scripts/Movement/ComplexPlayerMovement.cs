@@ -107,10 +107,10 @@ public class ComplexPlayerMovement : MonoBehaviour
     public bool Grounded = true;
 
     [Tooltip("Useful for rough ground")]
-    public float GroundedOffset = -0.14f;
+    public float GroundedOffset =0f;
 
     [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
-    public float GroundedRadius = 0.28f;
+    public float GroundedRadius = 0;
 
     [Tooltip("What layers the character uses as ground")]
     public LayerMask GroundLayers;
@@ -304,6 +304,7 @@ public class ComplexPlayerMovement : MonoBehaviour
             {
                 _animator.SetBool(_animIDJump, false);
                 _animator.SetBool(_animIDFreeFall, false);
+  
             }
 
             // stop our velocity dropping infinitely when grounded
@@ -556,7 +557,7 @@ public class ComplexPlayerMovement : MonoBehaviour
         }
         if (ctx.canceled)
         {
-            Debug.Log("Canceled");
+            Debug.Log(" Sprint canceled");
             sprint = ctx.ReadValueAsButton();
             OnStopSprint?.Invoke(); 
         }
@@ -584,15 +585,15 @@ public class ComplexPlayerMovement : MonoBehaviour
              //playervelocity.y -= fallingForce;
          }
      }*/
-    IEnumerator GroundChecker()
-    {
-        while (true)
-        {
-            isOnGround = _controller.isGrounded;
-            Debug.Log("Coroutine says: isOnGround ===== " + isOnGround);
-            yield return new WaitForSeconds(0.1f); // Ei yritä checkaa joka framella 
-        }
-    }
+    //IEnumerator GroundChecker()
+    //{
+    //    while (true)
+    //    {
+    //        isOnGround = _controller.isGrounded;
+    //        Debug.Log("Coroutine says: isOnGround ===== " + isOnGround);
+    //        yield return new WaitForSeconds(0.1f); // Ei yritä checkaa joka framella 
+    //    }
+    //}
     void Update()
     {
         GroundedCheck();

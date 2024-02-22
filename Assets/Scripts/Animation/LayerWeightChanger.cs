@@ -39,7 +39,6 @@ public class LayerWeightChanger : MonoBehaviour
             StopCoroutine(runningCoroutine);
         }
 
-        Debug.Log("StopSprint() called");
         layerIndex = 1; // The sprint layer index
         StartCoroutine(ChangeLayerWeight(0)); // Set the target weight to 0 for the sprint layer
     }
