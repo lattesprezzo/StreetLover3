@@ -8,7 +8,7 @@ public class PointAt : MonoBehaviour
     private Animator animator;
 
     void Start()
-    {
+    {   
         animator = GetComponent<Animator>();
     }
 
