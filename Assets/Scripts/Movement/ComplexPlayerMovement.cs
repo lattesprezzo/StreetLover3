@@ -598,7 +598,7 @@ public class ComplexPlayerMovement : MonoBehaviour
     {
         GroundedCheck();
 
-        Move();
+      Move();
         JumpAndGravity();
 
 
