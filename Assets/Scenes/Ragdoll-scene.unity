@@ -5331,6 +5331,26 @@ PrefabInstance:
       propertyPath: m_Center.y
       value: 0.24
       objectReference: {fileID: 0}
+    - target: {fileID: 5689474120256663476, guid: 90c1d3e857abdb7419cf069569b23d86,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5689474120256663476, guid: 90c1d3e857abdb7419cf069569b23d86,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5689474120256663476, guid: 90c1d3e857abdb7419cf069569b23d86,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5689474120256663476, guid: 90c1d3e857abdb7419cf069569b23d86,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6814917163551162917, guid: 90c1d3e857abdb7419cf069569b23d86,
         type: 3}
       propertyPath: m_Name

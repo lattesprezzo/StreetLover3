@@ -550,6 +550,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3125199830246858738, guid: 2fe8d828fb8983944ace9e219559b4ab,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3125199830246858738, guid: 2fe8d828fb8983944ace9e219559b4ab,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3125199830246858738, guid: 2fe8d828fb8983944ace9e219559b4ab,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3125199830246858738, guid: 2fe8d828fb8983944ace9e219559b4ab,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4267320268830716515, guid: 2fe8d828fb8983944ace9e219559b4ab,
         type: 3}
       propertyPath: m_Name
@@ -1687,6 +1707,11 @@ PrefabInstance:
       propertyPath: m_AABB.m_Extent.z
       value: 1.926652
       objectReference: {fileID: 0}
+    - target: {fileID: 8743813690021804245, guid: 29cbdf4aa6edb88458723c1459caa46c,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b326963f2de138944975ce25309f8aa2, type: 2}
     - target: {fileID: 8743813690021804245, guid: 29cbdf4aa6edb88458723c1459caa46c,
         type: 3}
       propertyPath: m_BlendShapeWeights.Array.data[0]
